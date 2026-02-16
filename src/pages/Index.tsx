@@ -4,7 +4,7 @@ import {
   WeekReport,
   getInitialDays,
   saveCurrent,
-  DEFAULT_SCHEDULE,
+  getBaseSchedule,
 } from '@/lib/duty-data';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,7 @@ import GradeTable from '@/components/duty/GradeTable';
 import Statistics from '@/components/duty/Statistics';
 import ExportPanel from '@/components/duty/ExportPanel';
 import History from '@/components/duty/History';
+import StudentEditor from '@/components/duty/StudentEditor';
 
 const Index = () => {
   const { toast } = useToast();
@@ -44,10 +45,20 @@ const Index = () => {
   const total = days.flatMap((d) => d.students).length;
 
   const handleReset = () => {
-    const fresh = JSON.parse(JSON.stringify(DEFAULT_SCHEDULE));
+    const fresh = getBaseSchedule();
     saveCurrent(fresh);
     setDays(fresh);
     toast({ title: 'Очищено', description: 'Все оценки сброшены' });
+  };
+
+  const handleScheduleSave = (schedule: DutyDay[]) => {
+    const fresh = schedule.map(d => ({
+      ...d,
+      students: d.students.map(s => ({ ...s, grade: '' as const })),
+    }));
+    saveCurrent(fresh);
+    setDays(fresh);
+    setActiveTab('table');
   };
 
   const handleLoadReport = useCallback(
@@ -100,7 +111,7 @@ const Index = () => {
       <main className="max-w-5xl mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-            <TabsList className="grid grid-cols-4 w-full max-w-md">
+            <TabsList className="grid grid-cols-5 w-full max-w-lg">
               <TabsTrigger value="table" className="gap-1 text-xs sm:text-sm">
                 <Icon name="Table" size={14} />
                 <span className="hidden sm:inline">Таблица</span>
@@ -116,6 +127,10 @@ const Index = () => {
               <TabsTrigger value="history" className="gap-1 text-xs sm:text-sm">
                 <Icon name="History" size={14} />
                 <span className="hidden sm:inline">История</span>
+              </TabsTrigger>
+              <TabsTrigger value="students" className="gap-1 text-xs sm:text-sm">
+                <Icon name="Users" size={14} />
+                <span className="hidden sm:inline">Ученики</span>
               </TabsTrigger>
             </TabsList>
 
@@ -153,6 +168,10 @@ const Index = () => {
 
           <TabsContent value="history" className="mt-0">
             <History refreshKey={historyKey} onLoad={handleLoadReport} />
+          </TabsContent>
+
+          <TabsContent value="students" className="mt-0">
+            <StudentEditor onSave={handleScheduleSave} />
           </TabsContent>
         </Tabs>
       </main>

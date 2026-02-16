@@ -150,14 +150,30 @@ export function deleteReport(id: string): void {
   localStorage.setItem('duty-history', JSON.stringify(history));
 }
 
+export function getCustomSchedule(): DutyDay[] | null {
+  try {
+    const saved = localStorage.getItem('duty-schedule');
+    if (saved) return JSON.parse(saved);
+  } catch { /* ignore */ }
+  return null;
+}
+
+export function saveCustomSchedule(days: DutyDay[]): void {
+  localStorage.setItem('duty-schedule', JSON.stringify(days));
+}
+
+export function getBaseSchedule(): DutyDay[] {
+  const custom = getCustomSchedule();
+  if (custom) return JSON.parse(JSON.stringify(custom));
+  return JSON.parse(JSON.stringify(DEFAULT_SCHEDULE));
+}
+
 export function getInitialDays(): DutyDay[] {
   try {
     const saved = localStorage.getItem('duty-current');
     if (saved) return JSON.parse(saved);
-  } catch {
-    /* ignore */
-  }
-  return JSON.parse(JSON.stringify(DEFAULT_SCHEDULE));
+  } catch { /* ignore */ }
+  return getBaseSchedule();
 }
 
 export function saveCurrent(days: DutyDay[]): void {
